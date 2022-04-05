@@ -1,0 +1,45 @@
+---
+- name: "Performing local actions"
+  hosts: 127.0.0.1
+
+  vars:
+          date: "{{ ansible_date_time.day }}{{ ansible_date_time.month }}{{ ansible_date_time.year }}"
+          time: "{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}"
+
+  tasks:
+
+          - name: "Creating required folder"
+            file:
+                    path: $HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}
+                    state: directory
+
+          - name: "Download PostgreSQL source"
+            get_url:
+                    url: https://ftp.postgresql.org/pub/source/v14.2/postgresql-14.2.tar.gz
+                    dest: $HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}
+
+          - name: "Unzip the source"
+            shell: "tar xzf postgresql-14.2.tar.gz"
+            args:
+                    chdir: $HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}
+
+          - name: "Running configure"
+            shell: "./configure --prefix=$HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}/binaries --without-readline --without-zlib"
+            args:
+                    chdir: $HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}/postgresql-14.2
+
+          - name: "Running make"
+            shell: "make"
+            args:
+                    chdir: $HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}/postgresql-14.2
+
+          - name: "Running make install"
+            shell: "make install"
+            args:
+                    chdir: $HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}/postgresql-14.2
+
+          - name: "Verify the installation"
+            shell: "./pg_config --version && echo Deployed"
+            args:
+                    chdir: $HOME/deployPostgreSQLViaGithubActions-{{ date }}-{{ time }}/binaries/bin
+
